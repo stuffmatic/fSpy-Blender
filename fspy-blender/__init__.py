@@ -30,15 +30,28 @@ try:
         self.layout.label(message)
       bpy.context.window_manager.popup_menu(draw_popup, title, type)
 
-    def import_fpsy_project(context, filepath, use_some_setting):
+
+    def import_fpsy_project(context, filepath, update_existing_camera):
         try:
             project = fspy.Project(filepath)
 
             camera_parameters = project.camera_parameters
+            camera_name = project.file_name
+            existing_camera = None
+            try:
+                existing_camera = bpy.data.objects[camera_name]
+                if existing_camera.type != 'CAMERA':
+                    show_popup("fSpy import error", 'There is already an object named ' + camera_name + ' that is not a camera. Rename it and try again.')
+                    return { 'CANCELLED' }
+            except KeyError:
+                # No existing object matching the camera name
+                pass
 
             # Create a camera
-            bpy.ops.object.camera_add()
-            camera = bpy.context.active_object
+            camera = existing_camera
+            if not update_existing_camera or camera is None:
+                bpy.ops.object.camera_add()
+                camera = bpy.context.active_object
             camera.data.type = 'PERSP'
             camera.data.lens_unit = 'FOV'
             camera.data.angle = camera_parameters.fov_horiz
@@ -78,7 +91,23 @@ try:
                 space_data.camera = camera
                 space_data.region_3d.view_perspective = 'CAMERA'
 
-                bg = space_data.background_images.new()
+                # Hide any existing bg images
+                for bg_image in space_data.background_images:
+                    bg_image.show_background_image = False
+
+                bg = None
+                if update_existing_camera:
+                    for bg_image in space_data.background_images:
+                        if bg_image.image:
+                            if bg_image.image.name == camera_name:
+                                bpy.data.images.remove(bg_image.image)
+                                bg_image.image = None
+                                bg = bg_image
+                                break
+                if not bg:
+                    bg = space_data.background_images.new()
+
+                bg.show_background_image = True
 
                 # Clean up a NamedTemporaryFile on your own
                 # delete=True means the file will be deleted on close
@@ -124,22 +153,14 @@ try:
 
         # List of operator properties, the attributes will be assigned
         # to the class instance from the operator settings before calling.
-        use_setting = BoolProperty(
-            name="Example Boolean",
-            description="Example Tooltip",
+        update_existing_camera = BoolProperty(
+            name="Update exiting import (if any)",
+            description="If a camera and background image matching the project file name already exist, update them instead of creating new objects",
             default=True,
         )
 
-        type = EnumProperty(
-            name="Example Enum",
-            description="Choose between two items",
-            items=(('OPT_A', "First Option", "Description one"),
-                   ('OPT_B', "Second Option", "Description two")),
-            default='OPT_A',
-        )
-
         def execute(self, context):
-            return import_fpsy_project(context, self.filepath, self.use_setting)
+            return import_fpsy_project(context, self.filepath, self.update_existing_camera)
 
     # Only needed if you want to add into a dynamic menu
     def menu_func_import(self, context):
