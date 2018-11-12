@@ -11,17 +11,17 @@ bl_info = {
     "category": "Import-Export"
 }
 
-if "bpy" in locals():
-    import importlib
-    importlib.reload(fspy)
-    importlib.reload(addon)
-else:
-    from . import addon
-    from . import fspy
-
 # Wrap the blender related code in a try-catch block to silently fail if
 # import bpy fails. This is to allow the unit testing code to import fspy.py
 try:
+    if "bpy" in locals():
+        import importlib
+        importlib.reload(fspy)
+        importlib.reload(addon)
+    else:
+        from . import addon
+        from . import fspy
+
     import bpy
 
     # Only needed if you want to add into a dynamic menu
