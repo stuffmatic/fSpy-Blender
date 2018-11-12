@@ -1,0 +1,1 @@
+python -m test.test
