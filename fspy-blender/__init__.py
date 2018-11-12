@@ -31,64 +31,67 @@ try:
       bpy.context.window_manager.popup_menu(draw_popup, title, type)
 
     def import_fpsy_project(context, filepath, use_some_setting):
-        project = fspy.Project(filepath)
+        try:
+            project = fspy.Project(filepath)
 
-        camera_parameters = project.camera_parameters
+            camera_parameters = project.camera_parameters
 
-        # Create a camera
-        bpy.ops.object.camera_add()
-        camera = bpy.context.active_object
-        camera.data.type = 'PERSP'
-        camera.data.lens_unit = 'FOV'
-        camera.data.angle = camera_parameters.fov_horiz
-        camera.name = project.file_name
+            # Create a camera
+            bpy.ops.object.camera_add()
+            camera = bpy.context.active_object
+            camera.data.type = 'PERSP'
+            camera.data.lens_unit = 'FOV'
+            camera.data.angle = camera_parameters.fov_horiz
+            camera.name = project.file_name
 
-        camera.matrix_world = mathutils.Matrix(camera_parameters.camera_transfrom)
+            camera.matrix_world = mathutils.Matrix(camera_parameters.camera_transfrom)
 
-        # Set render resolution
-        render_settings = bpy.context.scene.render
-        render_settings.resolution_x = camera_parameters.image_width
-        render_settings.resolution_y = camera_parameters.image_height
+            # Set render resolution
+            render_settings = bpy.context.scene.render
+            render_settings.resolution_x = camera_parameters.image_width
+            render_settings.resolution_y = camera_parameters.image_height
 
-        x_shift_scale = 1
-        y_shift_scale = 1
-        if camera_parameters.image_height > camera_parameters.image_width:
-            x_shift_scale = camera_parameters.image_width / camera_parameters.image_height
-        else:
-            y_shift_scale = camera_parameters.image_height / camera_parameters.image_width
+            x_shift_scale = 1
+            y_shift_scale = 1
+            if camera_parameters.image_height > camera_parameters.image_width:
+                x_shift_scale = camera_parameters.image_width / camera_parameters.image_height
+            else:
+                y_shift_scale = camera_parameters.image_height / camera_parameters.image_width
 
-        # camera.data.shift_x = x_shift_scale * (0.5 - pp[0])
-        # camera.data.shift_y = y_shift_scale * (-0.5 + pp[1])
+            # camera.data.shift_x = x_shift_scale * (0.5 - pp[0])
+            # camera.data.shift_y = y_shift_scale * (-0.5 + pp[1])
 
-        for area in bpy.context.screen.areas:
-          if area.type == 'VIEW_3D':
-            space_data = area.spaces.active
+            for area in bpy.context.screen.areas:
+              if area.type == 'VIEW_3D':
+                space_data = area.spaces.active
 
-            rv3d = space_data.region_3d # Reference 3D view region
-            space_data.show_background_images = True # Show BG images
-            space_data.camera = camera
-            space_data.region_3d.view_perspective = 'CAMERA'
+                rv3d = space_data.region_3d # Reference 3D view region
+                space_data.show_background_images = True # Show BG images
+                space_data.camera = camera
+                space_data.region_3d.view_perspective = 'CAMERA'
 
-            bg = space_data.background_images.new()
+                bg = space_data.background_images.new()
 
-            # Clean up a NamedTemporaryFile on your own
-            # delete=True means the file will be deleted on close
-            tmp = tempfile.NamedTemporaryFile(delete=True)
-            try:
-                tmp.write(project.image_data)
-                img = bpy.data.images.load(tmp.name)
-                img.name = project.file_name
-                img.pack()
-                bg.image = img
+                # Clean up a NamedTemporaryFile on your own
+                # delete=True means the file will be deleted on close
+                tmp = tempfile.NamedTemporaryFile(delete=True)
+                try:
+                    tmp.write(project.image_data)
+                    tmp.flush()
+                    img = bpy.data.images.load(tmp.name)
+                    img.name = project.file_name
+                    img.pack()
+                    bg.image = img
+                finally:
+                    tmp.close()  # deletes the file
 
-            finally:
-                tmp.close()  # deletes the file
+                break
 
-            break
-
-        show_popup("Done!", message = "", type = 'INFO')
-        return {'FINISHED'}
-
+            show_popup("Done!", message = "", type = 'INFO')
+            return {'FINISHED'}
+        except fspy.ParsingError as e:
+            show_popup("fSpy import error", str(e))
+            return {'CANCELLED'}
 
     # ImportHelper is a helper class, defines filename and
     # invoke() function which calls the file selector.
@@ -132,7 +135,7 @@ try:
 
     # Only needed if you want to add into a dynamic menu
     def menu_func_import(self, context):
-        self.layout.operator(ImportfSpyProject.bl_idname, text="fSpy import (.fspy)")
+        self.layout.operator(ImportfSpyProject.bl_idname, text="fSpy (.fspy)")
 
 
     def register():
