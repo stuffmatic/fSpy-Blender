@@ -58,8 +58,16 @@ try:
             else:
                 y_shift_scale = camera_parameters.image_height / camera_parameters.image_width
 
-            # camera.data.shift_x = x_shift_scale * (0.5 - pp[0])
-            # camera.data.shift_y = y_shift_scale * (-0.5 + pp[1])
+            pp = camera_parameters.principal_point
+            pp_rel = [0, 0]
+            image_aspect = camera_parameters.image_width / camera_parameters.image_height
+            if image_aspect <= 1:
+                pp_rel = (0.5 * (pp[0] / image_aspect + 1), 0.5 * (-pp[1] + 1))
+            else:
+                pp_rel = (0.5 * (pp[0] + 1), 0.5 * (-pp[1] * image_aspect + 1))
+
+            camera.data.shift_x = x_shift_scale * (0.5 - pp_rel[0])
+            camera.data.shift_y = y_shift_scale * (-0.5 + pp_rel[1])
 
             for area in bpy.context.screen.areas:
               if area.type == 'VIEW_3D':
