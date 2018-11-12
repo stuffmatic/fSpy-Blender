@@ -3,7 +3,7 @@ bl_info = {
     "name": "Import fSpy project",
     "author": "Per Gantelius",
     "description": "Imports the background image and camera parameters from an fSpy project.",
-    "version": (1, 0, 0),
+    "version": (0, 1, 0),
     "blender": (2, 79, 0),
     "location": "File > Import > fSpy",
     "url": "TODO",
@@ -25,6 +25,11 @@ try:
     import mathutils
     import tempfile
 
+    def show_popup(title, message, type = 'ERROR'):
+      def draw_popup(self, context):
+        self.layout.label(message)
+      bpy.context.window_manager.popup_menu(draw_popup, title, type)
+
     def import_fpsy_project(context, filepath, use_some_setting):
         project = fspy.Project(filepath)
 
@@ -39,7 +44,6 @@ try:
         camera.name = project.file_name
 
         camera.matrix_world = mathutils.Matrix(camera_parameters.camera_transfrom)
-
 
         # Set render resolution
         render_settings = bpy.context.scene.render
@@ -62,6 +66,8 @@ try:
 
             rv3d = space_data.region_3d # Reference 3D view region
             space_data.show_background_images = True # Show BG images
+            space_data.camera = camera
+            space_data.region_3d.view_perspective = 'CAMERA'
 
             bg = space_data.background_images.new()
 
@@ -80,6 +86,7 @@ try:
 
             break
 
+        show_popup("Done!", message = "", type = 'INFO')
         return {'FINISHED'}
 
 
