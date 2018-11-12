@@ -1,37 +1,45 @@
-# Add-on metadata
-bl_info = {
-    "name": "Import fSpy project",
-    "author": "Per Gantelius",
-    "description": "Imports the background image and camera parameters from an fSpy project.",
-    "version": (0, 1, 0),
-    "blender": (2, 79, 0),
-    "location": "File > Import > fSpy",
-    "url": "TODO",
-    "wiki_url": "TODO",
-    "category": "Import-Export"
-}
+import bpy
+import mathutils
+import tempfile
+from . import fspy
 
-# Reload logic
-if "bpy" in locals():
-    import importlib
-    importlib.reload(fspy)
-else:
-    from . import fspy
+# ImportHelper is a helper class, defines filename and
+# invoke() function which calls the file selector.
+from bpy_extras.io_utils import ImportHelper
+from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.types import Operator
 
-# Wrap the blender related code in a try-catch block to silently fail if
-# import bpy fails. This is to allow the unit testing code to import fspy.py
-try:
-    import bpy
-    import mathutils
-    import tempfile
+class ImportfSpyProject(Operator, ImportHelper):
+    """This appears in the tooltip of the operator and in the generated docs"""
+    bl_idname = "fspy_blender.import_project"
+    bl_label = "Import fSpy project"
 
-    def show_popup(title, message, type = 'ERROR'):
+    # ImportHelper mixin class uses this
+    filename_ext = ".fspy"
+
+    filter_glob = StringProperty(
+        default="*.fspy",
+        options={'HIDDEN'},
+        maxlen=255,  # Max internal buffer length, longer would be clamped.
+    )
+
+    # List of operator properties, the attributes will be assigned
+    # to the class instance from the operator settings before calling.
+    update_existing_camera = BoolProperty(
+        name="Update exiting import (if any)",
+        description="If a camera and background image matching the project file name already exist, update them instead of creating new objects",
+        default=True,
+    )
+
+    def execute(self, context):
+        return self.import_fpsy_project(context, self.filepath, self.update_existing_camera)
+
+    def show_popup(self, title, message, type = 'ERROR'):
       def draw_popup(self, context):
         self.layout.label(message)
       bpy.context.window_manager.popup_menu(draw_popup, title, type)
 
-
-    def import_fpsy_project(context, filepath, update_existing_camera):
+    def import_fpsy_project(self, context, filepath, update_existing_camera):
         try:
             project = fspy.Project(filepath)
 
@@ -41,7 +49,10 @@ try:
             try:
                 existing_camera = bpy.data.objects[camera_name]
                 if existing_camera.type != 'CAMERA':
-                    show_popup("fSpy import error", 'There is already an object named ' + camera_name + ' that is not a camera. Rename it and try again.')
+                    self.show_popup(
+                        "fSpy import error",
+                        'There is already an object named ' + camera_name + ' that is not a camera. Rename or remove it and try again.'
+                    )
                     return { 'CANCELLED' }
             except KeyError:
                 # No existing object matching the camera name
@@ -124,62 +135,8 @@ try:
 
                 break
 
-            show_popup("Done!", message = "", type = 'INFO')
+            self.show_popup("Done!", message = "", type = 'INFO')
             return {'FINISHED'}
         except fspy.ParsingError as e:
-            show_popup("fSpy import error", str(e))
+            self.show_popup("fSpy import error", str(e))
             return {'CANCELLED'}
-
-    # ImportHelper is a helper class, defines filename and
-    # invoke() function which calls the file selector.
-    from bpy_extras.io_utils import ImportHelper
-    from bpy.props import StringProperty, BoolProperty, EnumProperty
-    from bpy.types import Operator
-
-
-    class ImportfSpyProject(Operator, ImportHelper):
-        """This appears in the tooltip of the operator and in the generated docs"""
-        bl_idname = "io_fspy.import_project"  # important since its how bpy.ops.import_test.some_data is constructed
-        bl_label = "Import fSpy project"
-
-        # ImportHelper mixin class uses this
-        filename_ext = ".fspy"
-
-        filter_glob = StringProperty(
-            default="*.fspy",
-            options={'HIDDEN'},
-            maxlen=255,  # Max internal buffer length, longer would be clamped.
-        )
-
-        # List of operator properties, the attributes will be assigned
-        # to the class instance from the operator settings before calling.
-        update_existing_camera = BoolProperty(
-            name="Update exiting import (if any)",
-            description="If a camera and background image matching the project file name already exist, update them instead of creating new objects",
-            default=True,
-        )
-
-        def execute(self, context):
-            return import_fpsy_project(context, self.filepath, self.update_existing_camera)
-
-    # Only needed if you want to add into a dynamic menu
-    def menu_func_import(self, context):
-        self.layout.operator(ImportfSpyProject.bl_idname, text="fSpy (.fspy)")
-
-
-    def register():
-        bpy.utils.register_class(ImportfSpyProject)
-        bpy.types.INFO_MT_file_import.append(menu_func_import)
-
-
-    def unregister():
-        bpy.utils.unregister_class(ImportfSpyProject)
-        bpy.types.INFO_MT_file_import.remove(menu_func_import)
-
-
-    if __name__ == "__main__":
-        register()
-
-except ImportError:
-    # assume no bpy module. fail silently
-    pass
