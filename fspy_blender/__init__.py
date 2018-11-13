@@ -7,7 +7,7 @@ bl_info = {
     "blender": (2, 79, 0),
     "location": "File > Import > fSpy",
     "url": "https://github.com/stuffmatic/fSpy-Blender",
-    "wiki_url": "https://github.com/stuffmatic/fSpy-Blender",,
+    "wiki_url": "https://github.com/stuffmatic/fSpy-Blender",
     "tracker_url": "https://github.com/stuffmatic/fSpy-Blender/issues",
     "category": "Import-Export"
 }
