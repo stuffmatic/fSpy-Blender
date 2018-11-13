@@ -15,6 +15,7 @@ bl_info = {
 # Wrap the blender related code in a try-catch block to silently fail if
 # import bpy fails. This is to allow the unit testing code to import fspy.py
 try:
+    # TODO: make reloading work
     if "bpy" in locals():
         import importlib
         importlib.reload(fspy)
@@ -32,7 +33,6 @@ try:
     def register():
         bpy.utils.register_class(addon.ImportfSpyProject)
         bpy.types.INFO_MT_file_import.append(menu_func_import)
-
 
     def unregister():
         bpy.utils.unregister_class(addon.ImportfSpyProject)

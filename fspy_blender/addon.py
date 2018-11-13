@@ -50,7 +50,11 @@ class ImportfSpyProject(Operator, ImportHelper):
         )
 
     def set_up_camera(self, project, update_existing_camera):
-        camera_parameters = project.camera_parameters
+        """
+        Finds or creates a suitable camera and sets its parameters
+        """
+
+        # Is there already a camera with the same name as the project?
         camera_name = project.file_name
         existing_camera = None
         try:
@@ -68,17 +72,26 @@ class ImportfSpyProject(Operator, ImportHelper):
             # No existing object matching the camera name
             pass
 
-        # Create a camera
         camera = existing_camera
         if not update_existing_camera or camera is None:
+            # Create a new camera
             bpy.ops.object.camera_add()
             camera = bpy.context.active_object
+
+        # Set the camera name to match the name of the project file
+        camera.name = project.file_name
+
+        camera_parameters = project.camera_parameters
+
+        # Set field of view
         camera.data.type = 'PERSP'
         camera.data.lens_unit = 'FOV'
         camera.data.angle = camera_parameters.fov_horiz
-        camera.name = project.file_name
 
+        # Set camera transform
         camera.matrix_world = mathutils.Matrix(camera_parameters.camera_transfrom)
+
+        # Set camera shift (aka principal point)
         x_shift_scale = 1
         y_shift_scale = 1
         if camera_parameters.image_height > camera_parameters.image_width:
@@ -93,14 +106,16 @@ class ImportfSpyProject(Operator, ImportHelper):
             pp_rel = (0.5 * (pp[0] / image_aspect + 1), 0.5 * (-pp[1] + 1))
         else:
             pp_rel = (0.5 * (pp[0] + 1), 0.5 * (-pp[1] * image_aspect + 1))
-
         camera.data.shift_x = x_shift_scale * (0.5 - pp_rel[0])
         camera.data.shift_y = y_shift_scale * (-0.5 + pp_rel[1])
 
+        # Return the configured camera
         return camera
 
     def set_render_resolution(self, project):
-        # Set render resolution
+        """
+        Sets the render resolution to match the project image
+        """
         render_settings = bpy.context.scene.render
         render_settings.resolution_x = project.camera_parameters.image_width
         render_settings.resolution_y = project.camera_parameters.image_height
@@ -111,18 +126,22 @@ class ImportfSpyProject(Operator, ImportHelper):
           if area.type == 'VIEW_3D':
             space_data = area.spaces.active
 
-            rv3d = space_data.region_3d # Reference 3D view region
-            space_data.show_background_images = True # Show BG images
+            # Show background images
+            space_data.show_background_images = True
+
+            # Make the calibrated camera the active camera
             space_data.camera = camera
             space_data.region_3d.view_perspective = 'CAMERA'
 
             if set_background_image:
-                # Hide any existing bg images
+                # Setting background image has been requested.
+                # First, hide all existing bg images
                 for bg_image in space_data.background_images:
                     bg_image.show_background_image = False
 
                 bg = None
                 if update_existing_camera:
+                    # Try to find an existing bg image slot matching the project name
                     for bg_image in space_data.background_images:
                         if bg_image.image:
                             if bg_image.image.name == camera.name:
@@ -131,25 +150,29 @@ class ImportfSpyProject(Operator, ImportHelper):
                                 bg = bg_image
                                 break
                 if not bg:
+                    # No existin background image slot. Create one
                     bg = space_data.background_images.new()
 
+                # Make sure the background image slot is visible
                 bg.show_background_image = True
 
-                # Clean up a NamedTemporaryFile on your own
-                # delete=True means the file will be deleted on close
+                # Write project image data to a temp file
                 tmp_dir = bpy.app.tempdir
                 tmp_filename = "fspy-temp-image-" + uuid.uuid4().hex
                 tmp_path = os.path.join(tmp_dir, tmp_filename)
-
                 tmp_file = open(tmp_path, 'wb')
-
                 tmp_file.write(project.image_data)
                 tmp_file.close()
+
+                # Load background image data from temp file
                 img = bpy.data.images.load(tmp_path)
                 img.name = project.file_name
                 img.pack()
                 bg.image = img
+
+                # Remove temp file
                 os.remove(tmp_path)
+
             break # only set up one 3D area
 
 
