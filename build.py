@@ -2,7 +2,7 @@ import glob
 import os
 import zipfile
 
-src_dir_name = 'fspy-blender'
+src_dir_name = 'fspy_blender'
 init_file_path = os.path.join(src_dir_name, '__init__.py')
 init_file = open(init_file_path)
 version_parts = []
@@ -19,7 +19,6 @@ if len(version_parts) == 0:
     raise "Could not extract version number from " + init_file_path
 
 dist_archive_name = "fSpy-Blender-" + ".".join(version_parts) + ".zip"
-print dist_archive_name
 
 dist_dir_name = "dist"
 
