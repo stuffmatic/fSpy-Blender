@@ -1,6 +1,7 @@
 import bpy
+import uuid
+import os
 import mathutils
-import tempfile
 from . import fspy
 
 # ImportHelper is a helper class, defines filename and
@@ -122,18 +123,20 @@ class ImportfSpyProject(Operator, ImportHelper):
 
                 # Clean up a NamedTemporaryFile on your own
                 # delete=True means the file will be deleted on close
-                tmp = tempfile.NamedTemporaryFile(delete=True)
-                try:
-                    tmp.write(project.image_data)
-                    tmp.flush()
-                    img = bpy.data.images.load(tmp.name)
-                    img.name = project.file_name
-                    img.pack()
-                    bg.image = img
-                finally:
-                    tmp.close()  # deletes the file
+                tmp_dir = bpy.app.tempdir
+                tmp_filename = "fspy-temp-image-" + uuid.uuid4().hex
+                tmp_path = os.path.join(tmp_dir, tmp_filename)
 
-                break
+                tmp_file = open(tmp_path, 'wb')
+
+                tmp_file.write(project.image_data)
+                tmp_file.close()
+                img = bpy.data.images.load(tmp_path)
+                img.name = project.file_name
+                img.pack()
+                bg.image = img
+                os.remove(tmp_path)
+                break # only set up one 3D area
 
             self.show_popup("Done!", message = "", type = 'INFO')
             return {'FINISHED'}
