@@ -1,5 +1,9 @@
+This is the official [fSpy](https://fspy.io) importer for [Blender](https://blender.org).
+
+⚠️ This add-on is still in development. Please [report](https://github.com/stuffmatic/fSpy-Blender/issues) any bugs you find. 
+
 ## Getting started
 
-* Download latest release
+* [Download the latest version](https://github.com/stuffmatic/fSpy-Blender)
 * Install the add-on
-* Select a file to import: File -> Import -> fspy
+* Go to File > Import > fSpy
