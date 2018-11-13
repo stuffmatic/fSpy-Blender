@@ -1,108 +1,122 @@
 import bpy
-import uuid
-import os
 import mathutils
-from . import fspy
+import os
+import uuid
 
-# ImportHelper is a helper class, defines filename and
-# invoke() function which calls the file selector.
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator
 
-class ImportfSpyProject(Operator, ImportHelper):
-    """This appears in the tooltip of the operator and in the generated docs"""
-    bl_idname = "fspy_blender.import_project"
-    bl_label = "Import fSpy project"
+from . import fspy
 
-    # ImportHelper mixin class uses this
+class ImportfSpyProject(Operator, ImportHelper):
+    """Imports the background image and camera parameters from an fSpy project file"""
+    bl_idname = "fspy_blender.import_project"
+    bl_label = "Import fSpy project file"
+
     filename_ext = ".fspy"
 
     filter_glob = StringProperty(
-        default="*.fspy",
-        options={'HIDDEN'},
-        maxlen=255,  # Max internal buffer length, longer would be clamped.
+        default = "*.fspy",
+        options = { 'HIDDEN' },
+        maxlen= 255
     )
 
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
     update_existing_camera = BoolProperty(
         name="Update exiting import (if any)",
-        description="If a camera and background image matching the project file name already exist, update them instead of creating new objects",
-        default=True,
+        description=(
+            "If a camera and background image matching "
+            "the project file name already exist, update "
+            "them instead of creating new objects"
+        ),
+        default=True
+    )
+
+    import_background_image = BoolProperty(
+        name="Import background image",
+        description=(
+            "Set the image from the fSpy project "
+            "file as the camera background image"
+        ),
+        default=True
     )
 
     def execute(self, context):
-        return self.import_fpsy_project(context, self.filepath, self.update_existing_camera)
+        return self.import_fpsy_project(
+            context,
+            self.filepath,
+            self.update_existing_camera,
+            self.import_background_image
+        )
 
-    def show_popup(self, title, message, type = 'ERROR'):
-      def draw_popup(self, context):
-        self.layout.label(message)
-      bpy.context.window_manager.popup_menu(draw_popup, title, type)
-
-    def import_fpsy_project(self, context, filepath, update_existing_camera):
+    def set_up_camera(self, project, update_existing_camera):
+        camera_parameters = project.camera_parameters
+        camera_name = project.file_name
+        existing_camera = None
         try:
-            project = fspy.Project(filepath)
-
-            camera_parameters = project.camera_parameters
-            camera_name = project.file_name
-            existing_camera = None
-            try:
-                existing_camera = bpy.data.objects[camera_name]
-                if existing_camera.type != 'CAMERA':
-                    self.show_popup(
-                        "fSpy import error",
-                        'There is already an object named ' + camera_name + ' that is not a camera. Rename or remove it and try again.'
+            existing_camera = bpy.data.objects[camera_name]
+            if existing_camera.type != 'CAMERA':
+                self.report(
+                    { 'ERROR' },
+                    (
+                        "There is already an object named '" + camera_name + "' "
+                        "that is not a camera. Rename or remove it and try again."
                     )
-                    return { 'CANCELLED' }
-            except KeyError:
-                # No existing object matching the camera name
-                pass
+                )
+                return { 'CANCELLED' }
+        except KeyError:
+            # No existing object matching the camera name
+            pass
 
-            # Create a camera
-            camera = existing_camera
-            if not update_existing_camera or camera is None:
-                bpy.ops.object.camera_add()
-                camera = bpy.context.active_object
-            camera.data.type = 'PERSP'
-            camera.data.lens_unit = 'FOV'
-            camera.data.angle = camera_parameters.fov_horiz
-            camera.name = project.file_name
+        # Create a camera
+        camera = existing_camera
+        if not update_existing_camera or camera is None:
+            bpy.ops.object.camera_add()
+            camera = bpy.context.active_object
+        camera.data.type = 'PERSP'
+        camera.data.lens_unit = 'FOV'
+        camera.data.angle = camera_parameters.fov_horiz
+        camera.name = project.file_name
 
-            camera.matrix_world = mathutils.Matrix(camera_parameters.camera_transfrom)
+        camera.matrix_world = mathutils.Matrix(camera_parameters.camera_transfrom)
+        x_shift_scale = 1
+        y_shift_scale = 1
+        if camera_parameters.image_height > camera_parameters.image_width:
+            x_shift_scale = camera_parameters.image_width / camera_parameters.image_height
+        else:
+            y_shift_scale = camera_parameters.image_height / camera_parameters.image_width
 
-            # Set render resolution
-            render_settings = bpy.context.scene.render
-            render_settings.resolution_x = camera_parameters.image_width
-            render_settings.resolution_y = camera_parameters.image_height
+        pp = camera_parameters.principal_point
+        pp_rel = [0, 0]
+        image_aspect = camera_parameters.image_width / camera_parameters.image_height
+        if image_aspect <= 1:
+            pp_rel = (0.5 * (pp[0] / image_aspect + 1), 0.5 * (-pp[1] + 1))
+        else:
+            pp_rel = (0.5 * (pp[0] + 1), 0.5 * (-pp[1] * image_aspect + 1))
 
-            x_shift_scale = 1
-            y_shift_scale = 1
-            if camera_parameters.image_height > camera_parameters.image_width:
-                x_shift_scale = camera_parameters.image_width / camera_parameters.image_height
-            else:
-                y_shift_scale = camera_parameters.image_height / camera_parameters.image_width
+        camera.data.shift_x = x_shift_scale * (0.5 - pp_rel[0])
+        camera.data.shift_y = y_shift_scale * (-0.5 + pp_rel[1])
 
-            pp = camera_parameters.principal_point
-            pp_rel = [0, 0]
-            image_aspect = camera_parameters.image_width / camera_parameters.image_height
-            if image_aspect <= 1:
-                pp_rel = (0.5 * (pp[0] / image_aspect + 1), 0.5 * (-pp[1] + 1))
-            else:
-                pp_rel = (0.5 * (pp[0] + 1), 0.5 * (-pp[1] * image_aspect + 1))
+        return camera
 
-            camera.data.shift_x = x_shift_scale * (0.5 - pp_rel[0])
-            camera.data.shift_y = y_shift_scale * (-0.5 + pp_rel[1])
+    def set_render_resolution(self, project):
+        # Set render resolution
+        render_settings = bpy.context.scene.render
+        render_settings.resolution_x = project.camera_parameters.image_width
+        render_settings.resolution_y = project.camera_parameters.image_height
 
-            for area in bpy.context.screen.areas:
-              if area.type == 'VIEW_3D':
-                space_data = area.spaces.active
+    def set_up_3d_area(self, project, camera, update_existing_camera, set_background_image):
+        # Find the first 3D view area and set its background image
+        for area in bpy.context.screen.areas:
+          if area.type == 'VIEW_3D':
+            space_data = area.spaces.active
 
-                rv3d = space_data.region_3d # Reference 3D view region
-                space_data.show_background_images = True # Show BG images
-                space_data.camera = camera
-                space_data.region_3d.view_perspective = 'CAMERA'
+            rv3d = space_data.region_3d # Reference 3D view region
+            space_data.show_background_images = True # Show BG images
+            space_data.camera = camera
+            space_data.region_3d.view_perspective = 'CAMERA'
 
+            if set_background_image:
                 # Hide any existing bg images
                 for bg_image in space_data.background_images:
                     bg_image.show_background_image = False
@@ -111,7 +125,7 @@ class ImportfSpyProject(Operator, ImportHelper):
                 if update_existing_camera:
                     for bg_image in space_data.background_images:
                         if bg_image.image:
-                            if bg_image.image.name == camera_name:
+                            if bg_image.image.name == camera.name:
                                 bpy.data.images.remove(bg_image.image)
                                 bg_image.image = None
                                 bg = bg_image
@@ -136,10 +150,17 @@ class ImportfSpyProject(Operator, ImportHelper):
                 img.pack()
                 bg.image = img
                 os.remove(tmp_path)
-                break # only set up one 3D area
+            break # only set up one 3D area
 
-            self.show_popup("Done!", message = "", type = 'INFO')
+
+    def import_fpsy_project(self, context, filepath, update_existing_camera, set_background_image):
+        try:
+            project = fspy.Project(filepath)
+            camera = self.set_up_camera(project, update_existing_camera)
+            self.set_render_resolution(project)
+            self.set_up_3d_area(project, camera, update_existing_camera, set_background_image)
+            self.report({ 'INFO' }, "Finished setting up camera camera '" + project.file_name + "'")
             return {'FINISHED'}
         except fspy.ParsingError as e:
-            self.show_popup("fSpy import error", str(e))
+            self.report({ 'ERROR' }, 'fSpy import error: ' + str(e))
             return {'CANCELLED'}
