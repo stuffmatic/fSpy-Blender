@@ -1,8 +1,23 @@
+import os
+import unittest
 from fspy_blender import fspy
 
-# Test cases
-# no parameters
-# wrong project version
+class TestfSpyProjectLoading(unittest.TestCase):
 
-project = fspy.Project('test_data/canon5d_16mm.fspy')
-print(project.file_name)
+    def test_valid_project(self):
+        """
+        Opening a valid project should not raise
+        """
+        project = fspy.Project(self.project_path('canon5d_16mm.fspy'))
+
+    def test_wrong_project_version(self):
+        """
+        Opening projects with an unsupported binary version should fail
+        """
+        with self.assertRaises(fspy.ParsingError):
+            project = fspy.Project(self.project_path('invalid_project_version.fspy'))
+
+    # Helper to get the path of a test project
+    def project_path(self, project_name):
+        return os.path.join('test_data', project_name)
+
