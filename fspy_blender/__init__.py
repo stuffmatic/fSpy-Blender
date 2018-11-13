@@ -6,8 +6,9 @@ bl_info = {
     "version": (0, 1, 0),
     "blender": (2, 79, 0),
     "location": "File > Import > fSpy",
-    "url": "TODO",
-    "wiki_url": "TODO",
+    "url": "https://github.com/stuffmatic/fSpy-Blender",
+    "wiki_url": "https://github.com/stuffmatic/fSpy-Blender",,
+    "tracker_url": "https://github.com/stuffmatic/fSpy-Blender/issues",
     "category": "Import-Export"
 }
 
