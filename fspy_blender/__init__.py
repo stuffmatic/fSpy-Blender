@@ -21,7 +21,7 @@ bl_info = {
     "name": "Import fSpy project",
     "author": "Per Gantelius",
     "description": "Imports the background image and camera parameters from an fSpy project.",
-    "version": (0, 1, 2),
+    "version": (1, 0, 0),
     "blender": (2, 79, 0),
     "location": "File > Import > fSpy",
     "url": "https://github.com/stuffmatic/fSpy-Blender",
