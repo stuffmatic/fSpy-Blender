@@ -39,7 +39,7 @@ class ImportfSpyProject(Operator, ImportHelper):
     )
 
     update_existing_camera = BoolProperty(
-        name="Update exiting import (if any)",
+        name="Update existing import (if any)",
         description=(
             "If a camera and background image matching "
             "the project file name already exist, update "
