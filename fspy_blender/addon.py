@@ -139,22 +139,29 @@ class ImportfSpyProject(Operator, ImportHelper):
             space_data = area.spaces.active
 
             # Show background images
-            space_data.show_background_images = True
+            if hasattr(space_data, 'show_background_image'):
+                space_data.show_background_images = True
+            else:
+                #2.8
+                camera.data.show_background_images = True
 
             # Make the calibrated camera the active camera
             space_data.camera = camera
             space_data.region_3d.view_perspective = 'CAMERA'
 
             if set_background_image:
+                # In Blender 2.8+, the background images are associated with the camera and not the 3D view
+                background_images = camera.data.background_images if hasattr(camera.data, 'background_images') else space_data.background_images
+
                 # Setting background image has been requested.
                 # First, hide all existing bg images
-                for bg_image in space_data.background_images:
+                for bg_image in background_images:
                     bg_image.show_background_image = False
 
                 bg = None
                 if update_existing_camera:
                     # Try to find an existing bg image slot matching the project name
-                    for bg_image in space_data.background_images:
+                    for bg_image in background_images:
                         if bg_image.image:
                             if bg_image.image.name == camera.name:
                                 bpy.data.images.remove(bg_image.image)
@@ -163,7 +170,7 @@ class ImportfSpyProject(Operator, ImportHelper):
                                 break
                 if not bg:
                     # No existin background image slot. Create one
-                    bg = space_data.background_images.new()
+                    bg = background_images.new()
 
                 # Make sure the background image slot is visible
                 bg.show_background_image = True

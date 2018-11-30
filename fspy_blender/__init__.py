@@ -19,8 +19,8 @@ bl_info = {
     "name": "Import fSpy project",
     "author": "Per Gantelius",
     "description": "Imports the background image and camera parameters from an fSpy project.",
-    "version": (1, 0, 0),
-    "blender": (2, 79, 0),
+    "version": (1, 0, 1),
+    "blender": (2, 80, 0),
     "location": "File > Import > fSpy",
     "url": "https://github.com/stuffmatic/fSpy-Blender",
     "wiki_url": "https://github.com/stuffmatic/fSpy-Blender",
@@ -48,11 +48,21 @@ try:
 
     def register():
         bpy.utils.register_class(addon.ImportfSpyProject)
-        bpy.types.INFO_MT_file_import.append(menu_func_import)
+        # Add import menu item
+        if hasattr(bpy.types, 'TOPBAR_MT_file_import'):
+            #2.8+
+            bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+        else:
+            bpy.types.INFO_MT_file_import.append(menu_func_import)
 
     def unregister():
         bpy.utils.unregister_class(addon.ImportfSpyProject)
-        bpy.types.INFO_MT_file_import.remove(menu_func_import)
+        # Remove import menu item
+        if hasattr(bpy.types, 'TOPBAR_MT_file_import'):
+            #2.8+
+            bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+        else:
+            bpy.types.INFO_MT_file_import.remove(menu_func_import)
 
 
     if __name__ == "__main__":
