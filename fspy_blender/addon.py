@@ -198,7 +198,7 @@ class ImportfSpyProject(Operator, ImportHelper):
                 return { 'CANCELLED' }
             self.set_render_resolution(project)
             self.set_up_3d_area(project, camera, update_existing_camera, set_background_image)
-            self.report({ 'INFO' }, "Finished setting up camera camera '" + project.file_name + "'")
+            self.report({ 'INFO' }, "Finished setting up camera '" + project.file_name + "'")
             return {'FINISHED'}
         except fspy.ParsingError as e:
             self.report({ 'ERROR' }, 'fSpy import error: ' + str(e))
