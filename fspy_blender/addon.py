@@ -76,14 +76,10 @@ class ImportfSpyProject(Operator, ImportHelper):
         try:
             existing_camera = bpy.data.objects[camera_name]
             if existing_camera.type != 'CAMERA':
-                self.report(
-                    { 'ERROR' },
-                    (
-                        "There is already an object named '" + camera_name + "' "
-                        "that is not a camera. Rename or remove it and try again."
-                    )
-                )
-                return { 'CANCELLED' }
+                raise Exception((
+                    "There is already an object named '" + camera_name + "' "
+                    "that is not a camera. Rename or remove it and try again."
+                ))
         except KeyError:
             # No existing object matching the camera name
             pass
@@ -195,7 +191,11 @@ class ImportfSpyProject(Operator, ImportHelper):
     def import_fpsy_project(self, context, filepath, update_existing_camera, set_background_image):
         try:
             project = fspy.Project(filepath)
-            camera = self.set_up_camera(project, update_existing_camera)
+            try:
+                camera = self.set_up_camera(project, update_existing_camera)
+            except Exception as e:
+                self.report({ 'ERROR' }, str(e))
+                return { 'CANCELLED' }
             self.set_render_resolution(project)
             self.set_up_3d_area(project, camera, update_existing_camera, set_background_image)
             self.report({ 'INFO' }, "Finished setting up camera camera '" + project.file_name + "'")
