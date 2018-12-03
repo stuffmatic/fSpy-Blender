@@ -17,6 +17,13 @@ class TestfSpyProjectLoading(unittest.TestCase):
         with self.assertRaises(fspy.ParsingError):
             project = fspy.Project(self.project_path('invalid_project_version.fspy'))
 
+    def test_invalid_file_type(self):
+        """
+        Opening files that are not fSpy project files should fail
+        """
+        with self.assertRaises(fspy.ParsingError):
+            project = fspy.Project(self.project_path('json_export.json'))
+
     # Helper to get the path of a test project
     def project_path(self, project_name):
         return os.path.join('test_data', project_name)

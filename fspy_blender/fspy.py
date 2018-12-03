@@ -37,6 +37,8 @@ class Project:
     project_file = open(project_path, "rb")
 
     file_id = unpack('<I', project_file.read(4))[0]
+    if 2037412710 != file_id:
+        raise ParsingError("Trying to import a file that is not an fSpy project")
     self.project_version = unpack('<I', project_file.read(4))[0]
     if self.project_version != 1:
         raise ParsingError("Unsupported fSpy project file version " + str(self.project_version))
