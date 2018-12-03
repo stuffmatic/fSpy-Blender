@@ -1,1 +1,1 @@
-python -m test.test
+python -m unittest test.test
