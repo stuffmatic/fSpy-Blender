@@ -232,17 +232,17 @@ class ImportfSpyProject(Operator, ImportHelper):
             is_imperial = True
 
         if blender_unit:
-            distance_scale = 1.0
+            camera_distance_scale = 1.0
             if is_imperial:
-                distance_scale = 1.0 / 3.2808399
+                camera_distance_scale = 1.0 / 3.2808399
                 unit_settings.system = 'IMPERIAL'
             else:
                 unit_settings.system = 'METRIC'
             unit_settings.length_unit = blender_unit
             unit_settings.scale_length = scale_length
-            camera.location.x *= distance_scale
-            camera.location.y *= distance_scale
-            camera.location.z *= distance_scale
+            camera.location.x *= camera_distance_scale
+            camera.location.y *= camera_distance_scale
+            camera.location.z *= camera_distance_scale
         else:
             unit_settings.system = 'NONE'
             unit_settings.scale_length = 1.0
