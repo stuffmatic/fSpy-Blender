@@ -139,7 +139,7 @@ class ImportfSpyProject(Operator, ImportHelper):
             space_data = area.spaces.active
 
             # Show background images
-            if hasattr(space_data, 'show_background_image'):
+            if hasattr(space_data, 'show_background_images'):
                 space_data.show_background_images = True
             else:
                 #2.8
