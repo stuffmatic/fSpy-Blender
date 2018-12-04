@@ -52,6 +52,7 @@ class Project:
     project_file.seek(16)
     state = json.loads(project_file.read(state_string_size).decode('utf-8'))
     self.camera_parameters = CameraParameters(state["cameraParameters"])
-
+    calibration_settings = state["calibrationSettingsBase"]
+    self.reference_distance_unit = calibration_settings["referenceDistanceUnit"]
     self.image_data = project_file.read(image_buffer_size)
     self.file_name = os.path.basename(project_path)
