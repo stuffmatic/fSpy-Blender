@@ -175,6 +175,10 @@ class ImportfSpyProject(Operator, ImportHelper):
                 # Make sure the background image slot is visible
                 bg.show_background_image = True
 
+                if hasattr(bg, 'view_axis'):
+                    # only show the background image when looking through the camera (< 2.8)
+                    bg.view_axis = 'CAMERA'
+
                 # Write project image data to a temp file
                 tmp_dir = bpy.app.tempdir
                 tmp_filename = "fspy-temp-image-" + uuid.uuid4().hex
