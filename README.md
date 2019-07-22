@@ -1,16 +1,16 @@
 # What is this?
 
-This is the official [fSpy](https://fspy.io) import add-on for [Blender](https://blender.org). The two images below show an fSpy project (top) and a matching Blender camera created by the add-on (bottom).
+This is the official [fSpy](https://fspy.io) importer add-on for [Blender](https://blender.org). The two images below show an fSpy project (top) and a matching Blender camera created by the importer (bottom).
 
-![An example fSpy project](readme_images/help_fspy.png)
+![An example fSpy project](readme_images/help_fspy.jpg)
 
-![A matching Blender camera](readme_images/help_blender.png)
+![A matching Blender camera](readme_images/help_blender.jpg)
 
 # Getting started
 
-## 1. Downloading the latest version
+## 1. Download the add-on
 
-[Download the latest version](https://github.com/stuffmatic/fSpy-Blender/releases). Make sure you download the file called `fSpy-Blender-x.y.z.zip`.
+Download the latest version from [the releases page](https://github.com/stuffmatic/fSpy-Blender/releases). Make sure you download the file called `fSpy-Blender-x.y.z.zip`.
 
 ### ⚠️ __Important note for mac users__ ⚠️
 
@@ -19,7 +19,7 @@ Safari seems to unzip downloaded zip archives automatically by default. Since th
 * Disable the auto-unzip behaviour and download the add-on again
 * Manually re-archive the automatically unzipped folder and point Blender to this file when installing
 
-## 2. Installing the add-on
+## 2. Install the add-on
 
 Open the preferences window by selecting Preferences from the Edit menu
 
@@ -31,19 +31,21 @@ Select the _Add-ons_ tab and press the _Install_ button
 
 Select the downloaded zip-file and press _Install Add-on from file_
 
-Locate the add-on in the list and enable it by pressing the checkbox.
+![Select the zip file](readme_images/help_select_zip.png)
+
+Locate the fSpy importer in the add-on list and enable it by pressing the checkbox.
 
 ![Enable add-on](readme_images/help_enable_addon.png)
 
-## 3. Using the add-on
+## 3. Import an fSpy project file
 
-Once the add-on is installed and activated, fSpy project files can be imported by selecting _fSpy_ from the _Import_ menu.
+Once the add-on is installed and activated, fSpy project files can be imported by selecting _fSpy_ from the _Import_ menu. This will create a camera with the same name as the imported project file.
 
 ![Import menu](readme_images/help_import_menu.png)
 
-The importer creates a camera with the same name as the project file.
-
 ### Import settings
+
+At the bottom left in the importer's file browser, there is a panel with import settings.
 
 ![Import settings](readme_images/help_import_settings.png)
 
