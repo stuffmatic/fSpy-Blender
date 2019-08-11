@@ -52,3 +52,7 @@ At the bottom left in the importer's file browser, there is a panel with import 
 __Update existing import (if any)__ - If checked, any previously created camera with a name matching the project filename will be updated. If unchecked, a new camera will be created on each import. 
 
 __Import background image__ - If checked, the image from the fSpy project file will be used as the background image for the Blender camera.
+
+# Support for Blender versions older than 2.80
+
+Starting with version 1.0.3, the addon is only compatible with Blender 2.80 and up. If you are using an older Blender version, please [download version 1.0.2](https://github.com/stuffmatic/fSpy-Blender/releases/tag/v1.0.2) of the add-on.
