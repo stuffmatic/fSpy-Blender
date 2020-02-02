@@ -64,8 +64,10 @@ class ImportfSpyProject(Operator, ImportHelper):
             self.update_existing_camera,
             self.import_background_image
         )
+        
+    	
 
-    def set_up_camera(self, project, update_existing_camera):
+    def set_up_camera(self, project, update_existing_camera, offset):
         """
         Finds or creates a suitable camera and sets its parameters
         """
@@ -103,23 +105,8 @@ class ImportfSpyProject(Operator, ImportHelper):
         # Set camera transform
         camera.matrix_world = mathutils.Matrix(camera_parameters.camera_transfrom)
 
-        # Set camera shift (aka principal point)
-        x_shift_scale = 1
-        y_shift_scale = 1
-        if camera_parameters.image_height > camera_parameters.image_width:
-            x_shift_scale = camera_parameters.image_width / camera_parameters.image_height
-        else:
-            y_shift_scale = camera_parameters.image_height / camera_parameters.image_width
-
-        pp = camera_parameters.principal_point
-        pp_rel = [0, 0]
-        image_aspect = camera_parameters.image_width / camera_parameters.image_height
-        if image_aspect <= 1:
-            pp_rel = (0.5 * (pp[0] / image_aspect + 1), 0.5 * (-pp[1] + 1))
-        else:
-            pp_rel = (0.5 * (pp[0] + 1), 0.5 * (-pp[1] * image_aspect + 1))
-        camera.data.shift_x = x_shift_scale * (0.5 - pp_rel[0])
-        camera.data.shift_y = y_shift_scale * (-0.5 + pp_rel[1])
+        camera.data.shift_x = offset[0] #x
+        camera.data.shift_y = offset[1] #y
 
         # Return the configured camera
         return camera
@@ -132,7 +119,7 @@ class ImportfSpyProject(Operator, ImportHelper):
         render_settings.resolution_x = project.camera_parameters.image_width
         render_settings.resolution_y = project.camera_parameters.image_height
 
-    def set_up_3d_area(self, project, camera, update_existing_camera, set_background_image):
+    def set_up_3d_area(self, project, camera, update_existing_camera, set_background_image, offset):
         # Find the first 3D view area and set its background image
         for area in bpy.context.screen.areas:
           if area.type == 'VIEW_3D':
@@ -191,7 +178,8 @@ class ImportfSpyProject(Operator, ImportHelper):
                 img = bpy.data.images.load(tmp_path)
                 img.name = project.file_name
                 img.pack()
-                bg.image = img
+                bg.image = img 
+                bg.offset = [offset[0]*2,offset[1]*3] # Offset the background image relative to the camera's possible offset.
 
                 # Remove temp file
                 os.remove(tmp_path)
@@ -255,12 +243,31 @@ class ImportfSpyProject(Operator, ImportHelper):
         try:
             project = fspy.Project(filepath)
             try:
-                camera = self.set_up_camera(project, update_existing_camera)
+                #Figure out principal points.
+                camera_parameters = project.camera_parameters
+
+                x_shift_scale = 1
+                y_shift_scale = 1
+                if camera_parameters.image_height > camera_parameters.image_width:
+                    x_shift_scale = camera_parameters.image_width / camera_parameters.image_height
+                else:
+                    y_shift_scale = camera_parameters.image_height / camera_parameters.image_width
+
+                pp = camera_parameters.principal_point
+                pp_rel = [0, 0]
+                image_aspect = camera_parameters.image_width / camera_parameters.image_height
+                if image_aspect <= 1:
+                    pp_rel = (0.5 * (pp[0] / image_aspect + 1), 0.5 * (-pp[1] + 1))
+                else:
+                    pp_rel = (0.5 * (pp[0] + 1), 0.5 * (-pp[1] * image_aspect + 1))
+                offset = [x_shift_scale * (0.5 - pp_rel[0]), y_shift_scale * (-0.5 + pp_rel[1])]
+            	
+                camera = self.set_up_camera(project, update_existing_camera, offset)
             except Exception as e:
                 self.report({ 'ERROR' }, str(e))
                 return { 'CANCELLED' }
             self.set_render_resolution(project)
-            self.set_up_3d_area(project, camera, update_existing_camera, set_background_image)
+            self.set_up_3d_area(project, camera, update_existing_camera, set_background_image, offset)
             self.set_reference_distance_unit(project, camera)
             self.report({ 'INFO' }, "Finished setting up camera '" + project.file_name + "'")
             return {'FINISHED'}
