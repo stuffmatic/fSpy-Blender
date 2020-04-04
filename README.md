@@ -16,6 +16,7 @@ Download the latest version from [the releases page](https://github.com/stuffmat
 
 Safari seems to unzip downloaded zip archives automatically by default. Since the add-on must be installed as a zip file, you have to do one of the following
 
+* Right click and choose Download Linked File (this way it will not unzip automatically)
 * Disable the auto-unzip behaviour and download the add-on again
 * Manually re-archive the automatically unzipped folder and point Blender to this file when installing
 
