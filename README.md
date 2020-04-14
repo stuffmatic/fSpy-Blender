@@ -10,7 +10,7 @@ This is the official [fSpy](https://fspy.io) importer add-on for [Blender](https
 
 ## 1. Download the add-on
 
-Download the latest version from [the releases page](https://github.com/stuffmatic/fSpy-Blender/releases). Make sure you download the file called `fSpy-Blender-x.y.z.zip`.
+[Download the latest version](https://github.com/stuffmatic/fSpy-Blender/releases/latest) (make sure you download the file called `fSpy-Blender-x.y.z.zip`).
 
 ### ⚠️ __Important note for mac users__ ⚠️
 
