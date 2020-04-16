@@ -32,13 +32,13 @@ class ImportfSpyProject(Operator, ImportHelper):
 
     filename_ext = ".fspy"
 
-    filter_glob : StringProperty(
+    filter_glob = StringProperty(
         default = "*.fspy",
         options = { 'HIDDEN' },
         maxlen= 255
     )
 
-    update_existing_camera : BoolProperty(
+    update_existing_camera = BoolProperty(
         name="Update existing import (if any)",
         description=(
             "If a camera and background image matching "
@@ -48,7 +48,7 @@ class ImportfSpyProject(Operator, ImportHelper):
         default=True
     )
 
-    import_background_image : BoolProperty(
+    import_background_image = BoolProperty(
         name="Import background image",
         description=(
             "Set the image from the fSpy project "
