@@ -14,7 +14,7 @@ This is the official [fSpy](https://fspy.io) importer add-on for [Blender](https
 
 ### ⚠️ __Important note for mac users__ ⚠️
 
-If you're using Safari, make sure you __download the add-on by right clicking and choosing "Download Linked File"__. This prevents the the downloaded file from getting unzipped automatically.
+If you're using Safari, make sure you __download the add-on by right clicking and choosing "Download Linked File"__. This prevents the downloaded file from getting unzipped automatically.
 
 ## 2. Install the add-on
 
