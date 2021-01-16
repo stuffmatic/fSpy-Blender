@@ -19,7 +19,7 @@ bl_info = {
     "name": "Import fSpy project",
     "author": "Per Gantelius",
     "description": "Imports the background image and camera parameters from an fSpy project.",
-    "version": (1, 0, 3),
+    "version": (1, 1, 0),
     "blender": (2, 80, 0),
     "location": "File > Import > fSpy",
     "url": "https://github.com/stuffmatic/fSpy-Blender",
@@ -36,8 +36,12 @@ try:
         import importlib
         importlib.reload(fspy)
         importlib.reload(addon)
+        importlib.reload(properties)
+        importlib.reload(panel)
     else:
         from . import addon
+        from . import panel
+        from . import properties
         from . import fspy
 
     import bpy
@@ -47,7 +51,10 @@ try:
         self.layout.operator(addon.ImportfSpyProject.bl_idname, text="fSpy (.fspy)")
 
     def register():
+        properties.register()
         bpy.utils.register_class(addon.ImportfSpyProject)
+        bpy.utils.register_class(addon.SetRenderDimensions)
+        panel.register()
         # Add import menu item
         if hasattr(bpy.types, 'TOPBAR_MT_file_import'):
             #2.8+
@@ -56,7 +63,10 @@ try:
             bpy.types.INFO_MT_file_import.append(menu_func_import)
 
     def unregister():
+        panel.unregister()
         bpy.utils.unregister_class(addon.ImportfSpyProject)
+        bpy.utils.unregister_class(addon.SetRenderDimensions)
+        properties.unregister()
         # Remove import menu item
         if hasattr(bpy.types, 'TOPBAR_MT_file_import'):
             #2.8+

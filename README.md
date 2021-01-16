@@ -50,6 +50,12 @@ __Update existing import (if any)__ - If checked, any previously created camera 
 
 __Import background image__ - If checked, the image from the fSpy project file will be used as the background image for the Blender camera.
 
+### Panel
+
+If you are using multiple cameras with different reference image sizes, you can quickly switch from one render resolution to another using the `Set Render Dimensions` button in the fSpy panel:
+
+![fSpy Panel](readme_images/panel.png)
+
 # Support for Blender versions older than 2.80
 
 Starting with version 1.0.3, the addon is only compatible with Blender 2.80 and up. If you are using an older Blender version, please [download version 1.0.2](https://github.com/stuffmatic/fSpy-Blender/releases/tag/v1.0.2) of the add-on.
