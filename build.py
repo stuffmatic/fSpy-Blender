@@ -11,7 +11,7 @@ for line in init_file.readlines():
         version_string = line.split("(")[1]
         version_string = version_string.split(")")[0]
         version_parts = version_string.split(",")
-        version_parts = map(str.strip, version_parts)
+        version_parts = list(map(str.strip, version_parts))
         break
 init_file.close()
 

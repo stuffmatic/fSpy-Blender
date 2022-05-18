@@ -121,6 +121,12 @@ class ImportfSpyProject(Operator, ImportHelper):
         camera.data.shift_x = x_shift_scale * (0.5 - pp_rel[0])
         camera.data.shift_y = y_shift_scale * (-0.5 + pp_rel[1])
 
+        camera.data.fspy.use_fspy = True
+        camera.data.fspy.reference_dimensions = (
+            camera_parameters.image_width,
+            camera_parameters.image_height
+        )
+
         # Return the configured camera
         return camera
 
@@ -267,3 +273,22 @@ class ImportfSpyProject(Operator, ImportHelper):
         except fspy.ParsingError as e:
             self.report({ 'ERROR' }, 'fSpy import error: ' + str(e))
             return {'CANCELLED'}
+
+
+class SetRenderDimensions(Operator):
+    """Set the dimensions of the render to the dimensions of the
+    reference image that was used for this camera"""
+    bl_idname = "fspy_blender.set_render_dimensions"
+    bl_label = "Set Render Dimensions"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object.type == 'CAMERA'
+
+    def execute(self, context):
+        scene = context.scene
+        cam = context.active_object.data
+        w, h = cam.fspy.reference_dimensions
+        scene.render.resolution_x = w
+        scene.render.resolution_y = h
+        return {'FINISHED'}
