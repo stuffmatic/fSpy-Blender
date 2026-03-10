@@ -1,0 +1,15 @@
+schema_version = "1.0.0"
+
+id = "fspy_blender"
+version = "1.0.3"
+name = "Import fSpy project"
+tagline = "Imports the background image and camera parameters from an fSpy project"
+maintainer = "Per Gantelius"
+type = "add-on"
+
+tags = ["Import-Export"]
+
+blender_version_min = "4.2.0"
+
+license = ["SPDX:GPL-3.0-or-later"]
+website = "https://github.com/stuffmatic/fSpy-Blender"

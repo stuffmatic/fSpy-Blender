@@ -11,7 +11,7 @@ for line in init_file.readlines():
         version_string = line.split("(")[1]
         version_string = version_string.split(")")[0]
         version_parts = version_string.split(",")
-        version_parts = map(str.strip, version_parts)
+        version_parts = list(map(str.strip, version_parts))
         break
 init_file.close()
 
@@ -32,7 +32,10 @@ zipf = zipfile.ZipFile(
 )
 
 for py_file in glob.glob(os.path.join(src_dir_name, '*.py')):
-    zipf.write(py_file)
+    zipf.write(py_file, arcname=os.path.basename(py_file))
+
+manifest_path = os.path.join(src_dir_name, 'blender_manifest.toml')
+zipf.write(manifest_path, arcname='blender_manifest.toml')
 
 zipf.close()
 
