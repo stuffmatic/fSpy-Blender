@@ -34,25 +34,24 @@ class CameraParameters:
 
 class Project:
   def __init__(self, project_path):
-    project_file = open(project_path, "rb")
+    with open(project_path, "rb") as project_file:
+      file_id = unpack('<I', project_file.read(4))[0]
+      if 2037412710 != file_id:
+          raise ParsingError("Trying to import a file that is not an fSpy project")
+      self.project_version = unpack('<I', project_file.read(4))[0]
+      if self.project_version != 1:
+          raise ParsingError("Unsupported fSpy project file version " + str(self.project_version))
 
-    file_id = unpack('<I', project_file.read(4))[0]
-    if 2037412710 != file_id:
-        raise ParsingError("Trying to import a file that is not an fSpy project")
-    self.project_version = unpack('<I', project_file.read(4))[0]
-    if self.project_version != 1:
-        raise ParsingError("Unsupported fSpy project file version " + str(self.project_version))
+      state_string_size = unpack('<I', project_file.read(4))[0]
+      image_buffer_size = unpack('<I', project_file.read(4))[0]
 
-    state_string_size = unpack('<I', project_file.read(4))[0]
-    image_buffer_size = unpack('<I', project_file.read(4))[0]
+      if image_buffer_size == 0:
+          raise ParsingError("Trying to import an fSpy project with no image data")
 
-    if image_buffer_size == 0:
-        raise ParsingError("Trying to import an fSpy project with no image data")
-
-    project_file.seek(16)
-    state = json.loads(project_file.read(state_string_size).decode('utf-8'))
-    self.camera_parameters = CameraParameters(state["cameraParameters"])
-    calibration_settings = state["calibrationSettingsBase"]
-    self.reference_distance_unit = calibration_settings["referenceDistanceUnit"]
-    self.image_data = project_file.read(image_buffer_size)
-    self.file_name = os.path.basename(project_path)
+      project_file.seek(16)
+      state = json.loads(project_file.read(state_string_size).decode('utf-8'))
+      self.camera_parameters = CameraParameters(state["cameraParameters"])
+      calibration_settings = state["calibrationSettingsBase"]
+      self.reference_distance_unit = calibration_settings["referenceDistanceUnit"]
+      self.image_data = project_file.read(image_buffer_size)
+      self.file_name = os.path.basename(project_path)

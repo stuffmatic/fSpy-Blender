@@ -133,70 +133,65 @@ class ImportfSpyProject(Operator, ImportHelper):
         render_settings.resolution_y = project.camera_parameters.image_height
 
     def set_up_3d_area(self, project, camera, update_existing_camera, set_background_image):
-        # Find the first 3D view area and set its background image
-        for area in bpy.context.screen.areas:
-          if area.type == 'VIEW_3D':
-            space_data = area.spaces.active
+        # Make the calibrated camera the active scene camera
+        bpy.context.scene.camera = camera
 
-            # Show background images
-            if hasattr(space_data, 'show_background_images'):
-                space_data.show_background_images = True
-            else:
-                #2.8
-                camera.data.show_background_images = True
+        # Find the first 3D view area and make it look through the camera.
+        # There might not be any 3D view area, for example when running
+        # in background mode.
+        if bpy.context.screen:
+            for area in bpy.context.screen.areas:
+                if area.type == 'VIEW_3D':
+                    space_data = area.spaces.active
+                    # Also set the view camera, in case the 3D view is
+                    # unlocked from the scene camera
+                    space_data.camera = camera
+                    space_data.region_3d.view_perspective = 'CAMERA'
+                    break # only set up one 3D area
 
-            # Make the calibrated camera the active camera
-            space_data.camera = camera
-            space_data.region_3d.view_perspective = 'CAMERA'
+        if set_background_image:
+            # Background images are associated with the camera and not the 3D view
+            camera.data.show_background_images = True
+            background_images = camera.data.background_images
 
-            if set_background_image:
-                # In Blender 2.8+, the background images are associated with the camera and not the 3D view
-                background_images = camera.data.background_images if hasattr(camera.data, 'background_images') else space_data.background_images
+            # Setting background image has been requested.
+            # First, hide all existing bg images
+            for bg_image in background_images:
+                bg_image.show_background_image = False
 
-                # Setting background image has been requested.
-                # First, hide all existing bg images
+            bg = None
+            if update_existing_camera:
+                # Try to find an existing bg image slot matching the project name
                 for bg_image in background_images:
-                    bg_image.show_background_image = False
+                    if bg_image.image:
+                        if bg_image.image.name == camera.name:
+                            bpy.data.images.remove(bg_image.image)
+                            bg_image.image = None
+                            bg = bg_image
+                            break
+            if not bg:
+                # No existing background image slot. Create one
+                bg = background_images.new()
 
-                bg = None
-                if update_existing_camera:
-                    # Try to find an existing bg image slot matching the project name
-                    for bg_image in background_images:
-                        if bg_image.image:
-                            if bg_image.image.name == camera.name:
-                                bpy.data.images.remove(bg_image.image)
-                                bg_image.image = None
-                                bg = bg_image
-                                break
-                if not bg:
-                    # No existin background image slot. Create one
-                    bg = background_images.new()
+            # Make sure the background image slot is visible
+            bg.show_background_image = True
 
-                # Make sure the background image slot is visible
-                bg.show_background_image = True
+            # Write project image data to a temp file
+            tmp_dir = bpy.app.tempdir
+            tmp_filename = "fspy-temp-image-" + uuid.uuid4().hex
+            tmp_path = os.path.join(tmp_dir, tmp_filename)
+            tmp_file = open(tmp_path, 'wb')
+            tmp_file.write(project.image_data)
+            tmp_file.close()
 
-                if hasattr(bg, 'view_axis'):
-                    # only show the background image when looking through the camera (< 2.8)
-                    bg.view_axis = 'CAMERA'
+            # Load background image data from temp file
+            img = bpy.data.images.load(tmp_path)
+            img.name = project.file_name
+            img.pack()
+            bg.image = img
 
-                # Write project image data to a temp file
-                tmp_dir = bpy.app.tempdir
-                tmp_filename = "fspy-temp-image-" + uuid.uuid4().hex
-                tmp_path = os.path.join(tmp_dir, tmp_filename)
-                tmp_file = open(tmp_path, 'wb')
-                tmp_file.write(project.image_data)
-                tmp_file.close()
-
-                # Load background image data from temp file
-                img = bpy.data.images.load(tmp_path)
-                img.name = project.file_name
-                img.pack()
-                bg.image = img
-
-                # Remove temp file
-                os.remove(tmp_path)
-
-            break # only set up one 3D area
+            # Remove temp file
+            os.remove(tmp_path)
 
     def set_reference_distance_unit(self, project, camera):
         scene = bpy.context.scene
@@ -217,11 +212,9 @@ class ImportfSpyProject(Operator, ImportHelper):
         elif unit == 'Meters':
             blender_unit = 'METERS'
             scale_length = 1.0
-            blender_unit = 'METERS'
         elif unit == 'Kilometers':
             blender_unit = 'KILOMETERS'
             scale_length = 1000.0
-            blender_unit = 'KILOMETERS'
         elif unit == 'Inches':
             blender_unit = 'INCHES'
             scale_length = 1.0 / 12.0

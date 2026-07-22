@@ -1,38 +1,40 @@
-import glob
 import os
+import re
 import zipfile
 
 src_dir_name = 'fspy_blender'
-init_file_path = os.path.join(src_dir_name, '__init__.py')
-init_file = open(init_file_path)
-version_parts = []
-for line in init_file.readlines():
-    if '"version":' in line:
-        version_string = line.split("(")[1]
-        version_string = version_string.split(")")[0]
-        version_parts = version_string.split(",")
-        version_parts = map(str.strip, version_parts)
-        break
-init_file.close()
+manifest_name = 'blender_manifest.toml'
+manifest_path = os.path.join(src_dir_name, manifest_name)
 
-if len(version_parts) == 0:
-    raise "Could not extract version number from " + init_file_path
+# Extract the version number from the extension manifest
+version = None
+with open(manifest_path) as manifest_file:
+    for line in manifest_file:
+        match = re.match(r'^version\s*=\s*"([^"]+)"', line.strip())
+        if match:
+            version = match.group(1)
+            break
 
-dist_archive_name = "fSpy-Blender-" + ".".join(version_parts) + ".zip"
+if version is None:
+    raise RuntimeError("Could not extract version number from " + manifest_path)
+
+dist_archive_name = "fSpy-Blender-" + version + ".zip"
 
 dist_dir_name = "dist"
 
-if not os.path.exists(dist_dir_name):
-    os.makedirs(dist_dir_name)
+os.makedirs(dist_dir_name, exist_ok=True)
 
-zipf = zipfile.ZipFile(
-    os.path.join(dist_dir_name, dist_archive_name),
-    'w',
-    zipfile.ZIP_DEFLATED
+# The archive contains the add-on package in a single nested directory.
+# This layout works both when the zip is installed as an extension
+# (Blender 4.2+) and as a legacy add-on.
+file_names = sorted(
+    name for name in os.listdir(src_dir_name)
+    if name.endswith('.py') or name == manifest_name
 )
 
-for py_file in glob.glob(os.path.join(src_dir_name, '*.py')):
-    zipf.write(py_file)
+dist_archive_path = os.path.join(dist_dir_name, dist_archive_name)
+with zipfile.ZipFile(dist_archive_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+    for file_name in file_names:
+        zipf.write(os.path.join(src_dir_name, file_name))
 
-zipf.close()
-
+print("Built " + dist_archive_path)

@@ -1,0 +1,21 @@
+schema_version = "1.0.0"
+
+# Extension metadata, used when the add-on is installed as a Blender
+# extension (Blender 4.2 and newer). The bl_info dictionary in
+# __init__.py is only used for legacy add-on installs.
+
+id = "fspy_blender"
+version = "1.1.0"
+name = "Import fSpy project"
+tagline = "Import camera parameters and background images from fSpy files"
+maintainer = "Per Gantelius"
+type = "add-on"
+
+website = "https://github.com/jmossymoss/fspy-blender-4.5"
+
+tags = ["Import-Export", "Camera"]
+
+blender_version_min = "4.2.0"
+
+license = ["SPDX:GPL-3.0-or-later"]
+copyright = ["2018-2026 Per Gantelius and contributors"]
