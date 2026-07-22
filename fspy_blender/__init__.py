@@ -14,16 +14,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Add-on metadata
+# Legacy add-on metadata, used when the add-on is installed as a legacy
+# add-on. When it is installed as an extension (Blender 4.2 and newer),
+# this dictionary is ignored and blender_manifest.toml is used instead.
 bl_info = {
     "name": "Import fSpy project",
     "author": "Per Gantelius",
     "description": "Imports the background image and camera parameters from an fSpy project.",
-    "version": (1, 0, 3),
-    "blender": (2, 80, 0),
+    "version": (1, 1, 0),
+    "blender": (4, 2, 0),
     "location": "File > Import > fSpy",
-    "url": "https://github.com/stuffmatic/fSpy-Blender",
-    "wiki_url": "https://github.com/stuffmatic/fSpy-Blender",
+    "doc_url": "https://github.com/stuffmatic/fSpy-Blender",
     "tracker_url": "https://github.com/stuffmatic/fSpy-Blender/issues",
     "category": "Import-Export"
 }
@@ -49,20 +50,12 @@ try:
     def register():
         bpy.utils.register_class(addon.ImportfSpyProject)
         # Add import menu item
-        if hasattr(bpy.types, 'TOPBAR_MT_file_import'):
-            #2.8+
-            bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
-        else:
-            bpy.types.INFO_MT_file_import.append(menu_func_import)
+        bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
 
     def unregister():
-        bpy.utils.unregister_class(addon.ImportfSpyProject)
         # Remove import menu item
-        if hasattr(bpy.types, 'TOPBAR_MT_file_import'):
-            #2.8+
-            bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-        else:
-            bpy.types.INFO_MT_file_import.remove(menu_func_import)
+        bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+        bpy.utils.unregister_class(addon.ImportfSpyProject)
 
 
     if __name__ == "__main__":

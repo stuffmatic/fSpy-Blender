@@ -18,21 +18,23 @@ If you're using Safari, make sure you __download the add-on by right clicking an
 
 ## 2. Install the add-on
 
-Open the preferences window by selecting Preferences from the Edit menu
+This version of the add-on is packaged as a Blender extension and supports __Blender 4.2 and newer__, including Blender 4.5 LTS and the 5.x series (up to and including 5.2 LTS).
 
-![Edit -> Preferences](readme_images/help_edit_preferences.png)
+> ⚠️ If you have an older version of the fSpy importer installed as a legacy add-on, remove it before installing this one.
 
-Select the _Add-ons_ tab and press the _Install_ button
+The easiest way to install is to __drag and drop the downloaded zip file into the Blender window__ and confirm the installation in the dialog that appears.
 
-![Install add-on](readme_images/help_addons_install.png)
+Alternatively, install it manually:
 
-Select the downloaded zip-file and press _Install Add-on from file_
+1. Open the preferences window by selecting Preferences from the Edit menu
 
-![Select the zip file](readme_images/help_select_zip.png)
+   ![Edit -> Preferences](readme_images/help_edit_preferences.png)
 
-Locate the fSpy importer in the add-on list and enable it by pressing the checkbox.
+2. Select the _Get Extensions_ tab, open the dropdown menu in the top right corner and choose _Install from Disk..._
 
-![Enable add-on](readme_images/help_enable_addon.png)
+3. Select the downloaded zip file
+
+The add-on is enabled automatically after installation. You can find it in the _Add-ons_ tab of the preferences window.
 
 ## 3. Import an fSpy project file
 
@@ -50,6 +52,7 @@ __Update existing import (if any)__ - If checked, any previously created camera 
 
 __Import background image__ - If checked, the image from the fSpy project file will be used as the background image for the Blender camera.
 
-# Support for Blender versions older than 2.80
+# Support for older Blender versions
 
-Starting with version 1.0.3, the addon is only compatible with Blender 2.80 and up. If you are using an older Blender version, please [download version 1.0.2](https://github.com/stuffmatic/fSpy-Blender/releases/tag/v1.0.2) of the add-on.
+* __Blender 2.80 – 4.1__: use [version 1.0.3](https://github.com/stuffmatic/fSpy-Blender/releases/tag/v1.0.3) of the add-on, installed as a legacy add-on.
+* __Blender versions older than 2.80__: use [version 1.0.2](https://github.com/stuffmatic/fSpy-Blender/releases/tag/v1.0.2) of the add-on.
